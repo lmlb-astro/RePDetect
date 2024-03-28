@@ -82,10 +82,3 @@ class repetition_identifier:
 
 
 
-## main function: calls the repetition identifier
-def main():
-    IDer = repetition_identifier()
-    IDer.print_repetitions()
-
-if __name__ == "__main__":
-    main()
