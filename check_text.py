@@ -4,14 +4,17 @@
 
 # According to the federal Centers for Disease Control and Prevention ( news - web sites ) , there were 19 reported cases of measles in the United States in 2002 . The Centers for Disease Control and Prevention said there were 19 reported cases of measles in the United States in 2002 .
 
-
 import numpy as np
-from transformers import AutoModel, AutoTokenizer
+
+## Need model "ForSequenceClassification"
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
 
 class repetition_identifier:
     ## Initializes the repetition identifier
     def __init__(self):
-        self.id_model = AutoModel .from_pretrained('./tautology_BERT_v0p1')
+        ## Need model "ForSequenceClassification", a simple Automodel would not work
+        self.id_model = AutoModelForSequenceClassification.from_pretrained('./tautology_BERT_v0p1')
         self.tokenizer = AutoTokenizer.from_pretrained('./tautology_BERT_v0p1')
     
     
@@ -23,16 +26,15 @@ class repetition_identifier:
             sent1, sent2 = sentences[idx], sentences[idx+1]
 
             ## create tokenized data input for the model
-            print(sent1)
-            inps = self.tokenizer(sent1, sent2, return_tensors = "pt")
-            #inps2 = self.tokenizer(sent2, return_tensors = "pt")
-            #if idx == 0: print(inps1)
+            inps = self.tokenizer(sent1, sent2, return_tensors = "pt") ## tokenizes both sentences (seefrom transformers import AutoTokenizer, BertModel
     
             ## evaluate the input
             output = self.id_model(**inps)
 
             ## use the output to determine whether the sentence repeat the same thing
-            print(np.argmax(output, axis = -1)) # DOES THIS WORK?
+            ## i.e. if the second sentence has higher output than the first sentence
+            if (output.logits[0][0] < output.logits[0][1]):
+                print("repeating sentence")
     
     
     ## Obtains the input text, splits it into sentences and then calls the function to find the repeating sentences
