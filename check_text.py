@@ -18,40 +18,37 @@ class repetition_identifier:
         self.tokenizer = AutoTokenizer.from_pretrained('./tautology_BERT_v0p1')
     
     
+    #### PRIVATE FUNCTIONS OF THE CLASS ####
+    
+        
     ## Determine the indices of the repetitive sentences with the language model
+    ## returns a list with the indices of the first sentence that is then repeated in the next sentence
     def __inds_repetitive_sentences(self, sentences):
+        ## initialize the array
+        rep_id_list = []
         
         ## loop over all sentences
         for idx in range(0, len(sentences) - 1):
+            ## get the two sentences
             sent1, sent2 = sentences[idx], sentences[idx+1]
 
             ## create tokenized data input for the model
-            inps = self.tokenizer(sent1, sent2, return_tensors = "pt") ## tokenizes both sentences (seefrom transformers import AutoTokenizer, BertModel
+            inps = self.tokenizer(sent1, sent2, return_tensors = "pt") ## tokenizes both sentences
     
-            ## evaluate the input
+            ## evaluate the input with the model
             output = self.id_model(**inps)
 
             ## use the output to determine whether the sentence repeat the same thing
             ## i.e. if the second sentence has higher output than the first sentence
             if (output.logits[0][0] < output.logits[0][1]):
-                print("repeating sentence")
-    
-    
-    ## Obtains the input text, splits it into sentences and then calls the function to find the repeating sentences
-    def __get_repetitions(self):
-        # get text from terminal and split into sentences
-        text = input("Please input the message:")
-        sentences = self.__text_to_sentences(text)
-    
-        rep_inds = self.__inds_repetitive_sentences(sentences)
-        # CONTINUE HERE
-    
-        ## store the indices and the sentences
+                rep_id_list.append(idx)
+        
+        return rep_id_list
     
     
     ## basic implementation to split the sentence
     def __text_to_sentences(self, text):
-        ## split the text into sentences
+        ## split the text into sentences and remove the last part of the split() function which does not return an actual sentence of the text
         sentences = text.split(".")[:-1]
 
         ## make sure every sentence ends with a "."
@@ -59,18 +56,36 @@ class repetition_identifier:
             sentences[idx] = "{sentence}.".format(sentence = sentences[idx])
 
         return sentences
+
+
+    
+    #### PUBLIC FUNCTIONS OF THE CLASS ####
     
     
-    ## retuns the phrases that repeat the same content
-    def return_repetitions(self):
-        reps = self.__get_repetitions()
+    ## Obtains the input text, splits it into sentences and then calls the function to find the repeating sentences
+    def print_repetitions(self):
+        # get text from terminal and split into sentences
+        text = input("Please input the message:")
+        sentences = self.__text_to_sentences(text)
+    
+        ## get the indices of the sentences that are being repeated
+        rep_inds = self.__inds_repetitive_sentences(sentences)
+    
+        ## print the repeating indices
+        if(len(rep_inds) > 0):
+            print("The following sentences are repeated in by the sentence text:\n")
+            for idx in rep_inds:
+                print("Sentence No. {idx}: {sentence} \n".format(idx = idx+1, sentence = sentences[idx]))
+        else:
+            print("There are no repeated sentences in the text.")
+
 
 
 
 ## main function: calls the repetition identifier
 def main():
     IDer = repetition_identifier()
-    IDer.return_repetitions()
+    IDer.print_repetitions()
 
 if __name__ == "__main__":
     main()
